@@ -1,18 +1,18 @@
 import * as THREE from "three";
-import { RNG } from './rng';
-import { blocks } from './blocks.js';
+import { RNG } from "./rng";
+import { blocks, resources } from "./blocks.js";
 import { SimplexNoise } from "three/examples/jsm/Addons.js";
 
 // objects
 
 const geometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshLambertMaterial();
+
 
 export class World extends THREE.Group {
-   size = {
+  size = {
     width: 32,
-    height: 16
-  }
+    height: 16,
+  };
 
   /**
    * Parameters for terrain generation
@@ -22,9 +22,9 @@ export class World extends THREE.Group {
     terrain: {
       scale: 30,
       magnitude: 0.2,
-      offset: 0.5
-    }
-  }
+      offset: 0.5,
+    },
+  };
 
   /**
    * @type {{
@@ -42,13 +42,11 @@ export class World extends THREE.Group {
   generateWorld() {
     const rng = new RNG(this.params.seed);
     this.initialize();
+    this.generateResource(rng);
     this.generateTerrain(rng);
     this.generateMeshes();
   }
 
-  /**
-   * Initializes an empty world
-   */
   initialize() {
     this.data = [];
     for (let x = 0; x < this.size.width; x++) {
@@ -58,7 +56,7 @@ export class World extends THREE.Group {
         for (let z = 0; z < this.size.width; z++) {
           row.push({
             id: blocks.empty.id,
-            instanceId: null
+            instanceId: null,
           });
         }
         slice.push(row);
@@ -67,37 +65,56 @@ export class World extends THREE.Group {
     }
   }
 
-  /**
-   * Generates the world terrain data
-   */
+  // resource generation
+
+  generateResource(rng) {
+    const noiseGenerator = new SimplexNoise(rng);
+
+    resources.forEach((res)=>{
+          for (let x = 0; x < this.size.width; x++) {
+      for (let y = 0; y < this.size.height; y++) {
+        for (let z = 0; z < this.size.width; z++) {
+          const value = noiseGenerator.noise3d(x / res.scale.x, y / res.scale.y, z / res.scale.z);
+          if (value > res.rarity) {
+            this.setBlockId(x, y, z, res.id);
+          }
+        }
+      }
+    }
+    })
+
+  }
+
+  //terrain generation
   generateTerrain(rng) {
     const noiseGenerator = new SimplexNoise(rng);
     for (let x = 0; x < this.size.width; x++) {
       for (let z = 0; z < this.size.width; z++) {
-
         // Compute noise value at this x-z location
         const value = noiseGenerator.noise(
           x / this.params.terrain.scale,
-          z / this.params.terrain.scale
+          z / this.params.terrain.scale,
         );
 
         // Scale noise based on the magnitude and add in the offset
-        const scaledNoise = this.params.terrain.offset + this.params.terrain.magnitude * value;
+        const scaledNoise =
+          this.params.terrain.offset + this.params.terrain.magnitude * value;
 
         // Compute final height of terrain at this location
         let height = this.size.height * scaledNoise;
 
         // Clamp between 0 and max height
-        height = Math.max(0, Math.min(Math.floor(height), this.size.height - 1));
-        
+        height = Math.max(
+          0,
+          Math.min(Math.floor(height), this.size.height - 1),
+        );
+
         // Starting at the terrain height, fill in all the blocks below that height
         for (let y = 0; y < this.size.height; y++) {
-          if (y === height) {
+          if (y === height && this.getBlock(x, y, z).id === blocks.empty.id) {
             this.setBlockId(x, y, z, blocks.grass.id);
-          // Fill in everything below with dirt
           } else if (y < height) {
             this.setBlockId(x, y, z, blocks.dirt.id);
-          // Clear everything above
           } else if (y > height) {
             this.setBlockId(x, y, z, blocks.empty.id);
           }
@@ -106,32 +123,46 @@ export class World extends THREE.Group {
     }
   }
 
-  /**
-   * Generates the meshes from the world data
-   */
   generateMeshes() {
+
     this.disposeChildren();
-    
-    // Initialize instanced mesh to total size of world
+// Initialize instanced mesh to total size of world
     const maxCount = this.size.width * this.size.width * this.size.height;
-    const mesh = new THREE.InstancedMesh(geometry, material, maxCount);
+
+// map pf the meshesh
+
+const meshes= {}
+
+Object.values(blocks).filter(block => block.id !== blocks.empty.id)
+.forEach(block=>{
+  const mesh = new THREE.InstancedMesh(geometry, block.material, maxCount);
+  mesh.name=block.name
     mesh.count = 0;
-  
+    mesh.castShadow = true
+    mesh.receiveShadow = true
+    meshes[block.id] = mesh 
+})
+
+    
+    
+
     // Add instances for each non-empty block
     const matrix = new THREE.Matrix4();
     for (let x = 0; x < this.size.width; x++) {
       for (let y = 0; y < this.size.height; y++) {
         for (let z = 0; z < this.size.width; z++) {
           const blockId = this.getBlock(x, y, z).id;
-          const blockType = Object.values(blocks).find(x => x.id === blockId);
+        if(blockId === blocks.empty.id) continue;
+
+        const mesh = meshes[blockId];
+ 
           const instanceId = mesh.count;
 
           // Create a new instance if
-         
-          if (blockId !== blocks.empty.id && !this.isBlockObscured(x, y, z)) {
+
+          if ( !this.isBlockObscured(x, y, z)) {
             matrix.setPosition(x, y, z);
             mesh.setMatrixAt(instanceId, matrix);
-            mesh.setColorAt(instanceId, new THREE.Color(blockType.color));
             this.setBlockInstanceId(x, y, z, instanceId);
             mesh.count++;
           }
@@ -139,14 +170,14 @@ export class World extends THREE.Group {
       }
     }
 
-    this.add(mesh);
+    this.add(...Object.values(meshes));
   }
 
   /**
    * Gets the block data at (x, y, z)
-   * @param {number} x 
-   * @param {number} y 
-   * @param {number} z 
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
    * @returns {{id: number, instanceId: number}}
    */
   getBlock(x, y, z) {
@@ -156,13 +187,12 @@ export class World extends THREE.Group {
       return null;
     }
   }
-  
 
   /**
    * Sets the block id for the block at (x, y, z)
-   * @param {number} x 
-   * @param {number} y 
-   * @param {number} z 
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
    * @param {number} id
    */
   setBlockId(x, y, z, id) {
@@ -170,13 +200,12 @@ export class World extends THREE.Group {
       this.data[x][y][z].id = id;
     }
   }
-  
 
   /**
    * Sets the block instance id for the block at (x, y, z)
-   * @param {number} x 
-   * @param {number} y 
-   * @param {number} z 
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
    * @param {number} instanceId
    */
   setBlockInstanceId(x, y, z, instanceId) {
@@ -184,19 +213,24 @@ export class World extends THREE.Group {
       this.data[x][y][z].instanceId = instanceId;
     }
   }
-  
+
   /**
    * Checks if the (x, y, z) coordinates are within bounds
-   * @param {number} x 
-   * @param {number} y 
-   * @param {number} z 
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
    * @returns {boolean}
    */
   inBounds(x, y, z) {
-    if (x >= 0 && x < this.size.width &&
-      y >= 0 && y < this.size.height &&
-      z >= 0 && z < this.size.width) {
-      return true; 
+    if (
+      x >= 0 &&
+      x < this.size.width &&
+      y >= 0 &&
+      y < this.size.height &&
+      z >= 0 &&
+      z < this.size.width
+    ) {
+      return true;
     } else {
       return false;
     }
@@ -204,9 +238,9 @@ export class World extends THREE.Group {
 
   /**
    * Returns true if this block is completely hidden by other blocks
-   * @param {number} x 
-   * @param {number} y 
-   * @param {number} z 
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
    * @returns {boolean}
    */
   isBlockObscured(x, y, z) {
@@ -216,14 +250,16 @@ export class World extends THREE.Group {
     const right = this.getBlock(x - 1, y, z)?.id ?? blocks.empty.id;
     const forward = this.getBlock(x, y, z + 1)?.id ?? blocks.empty.id;
     const back = this.getBlock(x, y, z - 1)?.id ?? blocks.empty.id;
-  
+
     // If any of the block's sides is exposed, it is not obscured
-    if (up === blocks.empty.id ||
-        down === blocks.empty.id || 
-        left === blocks.empty.id || 
-        right === blocks.empty.id || 
-        forward === blocks.empty.id || 
-        back === blocks.empty.id) {
+    if (
+      up === blocks.empty.id ||
+      down === blocks.empty.id ||
+      left === blocks.empty.id ||
+      right === blocks.empty.id ||
+      forward === blocks.empty.id ||
+      back === blocks.empty.id
+    ) {
       return false;
     } else {
       return true;
@@ -231,10 +267,9 @@ export class World extends THREE.Group {
   }
 
   disposeChildren() {
-    this.traverse(obj => {
+    this.traverse((obj) => {
       if (obj.dispose) obj.dispose();
-    })
+    });
     this.clear();
   }
-  
 }

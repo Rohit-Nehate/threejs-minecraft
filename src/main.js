@@ -34,6 +34,8 @@ renderer.setClearColor(0x87CEEB)
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.outputColorSpace = THREE.SRGBColorSpace
+renderer.shadowMap.enabled = true
+renderer.shadowMap.set = THREE.PCFShadowMap
 //append 
 
 document.body.appendChild(renderer.domElement)
@@ -42,19 +44,30 @@ document.body.appendChild(renderer.domElement)
 
 const world = new World()
 world.generateWorld()
-console.log(world)
 scene.add(world)
 
 //lights
 const abientLight = new THREE.AmbientLight(0xffffff, 1)
 scene.add(abientLight)
 
-const directionalLight1 = new THREE.DirectionalLight(0xffffff, 2)
-directionalLight1.position.set(10,5,10)
+const directionalLight1 = new THREE.DirectionalLight(0xffffff, 5)
+directionalLight1.position.set(50,50,50)
+directionalLight1.castShadow = true
+directionalLight1.shadow.camera.top = 50
+directionalLight1.shadow.camera.bottom = -50
+directionalLight1.shadow.camera.left = 50
+directionalLight1.shadow.camera.right = -50
+directionalLight1.shadow.camera.near = 1
+directionalLight1.shadow.camera.far = 100
+directionalLight1.shadow.bias = -0.01
+
+
 scene.add(directionalLight1)
-const directionalLight2 = new THREE.DirectionalLight(0xffffff, 1)
-directionalLight1.position.set(-32, 100, -10)
-scene.add(directionalLight2)
+
+// const shadowHelper = new THREE.CameraHelper(directionalLight1.shadow.camera)
+// scene.add(shadowHelper)
+
+
 
 
 //resize
