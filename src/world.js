@@ -10,8 +10,8 @@ const geometry = new THREE.BoxGeometry(1, 1, 1);
 
 export class World extends THREE.Group {
   size = {
-    width: 32,
-    height: 16,
+    width: 64,
+    height: 32,
   };
 
   /**
