@@ -5,6 +5,7 @@ import Stats from "three/examples/jsm/libs/stats.module.js";
 import { bool } from "three/tsl";
 import { createGUI } from "./gui";
 import { Player } from "./player";
+import { Physics } from "./physics";
 
 const stats = new Stats();
 document.body.append(stats.dom);
@@ -50,6 +51,7 @@ const world = new World();
 world.generateWorld();
 scene.add(world);
 const player = new Player(scene);
+const physics = new Physics(scene);
 
 //lights
 const abientLight = new THREE.AmbientLight(0xffffff, 1);
@@ -75,7 +77,7 @@ scene.add(directionalLight1);
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-    player.camera.aspect = aspect = window.innerWidth / window.innerHeight;
+  player.camera.aspect = aspect = window.innerWidth / window.innerHeight;
   player.camera.updateProjectionMatrix();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -90,17 +92,18 @@ let prevTime = performance.now();
 const animate = () => {
   requestAnimationFrame(animate);
   let currentTime = performance.now();
-  const dt = Math.floor(currentTime - prevTime) /1000;
+  const dt = Math.floor(currentTime - prevTime) / 1000;
 
-  renderer.render(scene, player.control.isLocked? player.camera: camera);
+  renderer.render(scene, player.control.isLocked ? player.camera : camera);
 
   //updates
-  player.movePlayer(dt);
+
+  physics.update(dt, world, player);
   stats.update();
   controls.update();
 
   prevTime = currentTime;
 };
 
-createGUI(world, player);
+createGUI(world, player, physics);
 animate();
