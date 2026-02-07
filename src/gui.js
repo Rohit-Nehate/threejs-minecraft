@@ -32,6 +32,7 @@ export const createGUI = (world, player, physics) => {
     .add(world.params.terrain, "magnitude", 0, 3, 0.1)
     .name("Chunk Magnitude");
   terrainFolder.add(world.params.terrain, "offset", 0, 1).name("Chunk Offset");
+  terrainFolder.add(world, 'renderDistance', 0, 5, 1).name("render Distance")
 
   const resourcesFolder = gui.addFolder("Resourced");
 

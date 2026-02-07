@@ -2,7 +2,6 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 import { World } from "./world";
 import Stats from "three/examples/jsm/libs/stats.module.js";
-import { bool } from "three/tsl";
 import { createGUI } from "./gui";
 import { Player } from "./player";
 import { Physics } from "./physics";
@@ -98,9 +97,13 @@ const animate = () => {
 
   //updates
 
-  physics.update(dt, world, player);
-  stats.update();
-  controls.update();
+  physics.update(dt, world, player); // simulating physics 
+
+  world.update(player); //calling the world update function
+
+  stats.update(); // fps rendering on each render
+
+  controls.update(); // updating controls on each render
 
   prevTime = currentTime;
 };

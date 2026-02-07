@@ -41,7 +41,7 @@ export class Physics {
       player.movePlayer(this.timeStep);
       player.updatePlayerHelper();
       this.detectcollison(world, player);
-      this.accumlator-=this.timeStep
+      this.accumlator -= this.timeStep;
     }
   }
 
