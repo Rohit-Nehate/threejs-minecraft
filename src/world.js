@@ -4,7 +4,8 @@ import { WorldChunk } from "./worldChunk";
 export class World extends THREE.Group {
   // render distance - 1 render == player chunk + 1-1 chunk around player chunk
 
-  renderDistance = 1;
+  renderDistance = 2;
+  asyncLoading = true;
 
   /**
    * Parameters for terrain generation
@@ -19,7 +20,7 @@ export class World extends THREE.Group {
   };
 
   size = {
-    width:32,
+    width: 32,
     height: 32,
   };
 
@@ -50,8 +51,8 @@ export class World extends THREE.Group {
     this.removeChunksOutOfRender(renderedChunks);
     // console.log(chunksToRemove)
 
-    for(const chunk of chunkToRender){
-      this.renderChunk(chunk.x, chunk.z)
+    for (const chunk of chunkToRender) {
+      this.renderChunk(chunk.x, chunk.z);
     }
   }
 
@@ -115,11 +116,15 @@ export class World extends THREE.Group {
   // function to render new chunks
 
   renderChunk(x, z) {
-    this.chunk = new WorldChunk(this.size, this.params);
-    this.chunk.position.set(x * this.size.width, 0, z * this.size.width);
-    this.chunk.generateWorld();
-    this.chunk.userData = { x, z };
-    this.add(this.chunk);
+    const chunk = new WorldChunk(this.size, this.params);
+    chunk.position.set(x * this.size.width, 0, z * this.size.width);
+    if (this.asyncLoading) {
+      requestIdleCallback(chunk.generateWorld.bind(chunk), { timeout: 1000 });
+    } else {
+      chunk.generateWorld();
+    }
+    chunk.userData = { x, z };
+    this.add(chunk);
   }
 
   //get block position
@@ -127,7 +132,7 @@ export class World extends THREE.Group {
     const coordinates = this.chunkCoordsRelativeToWorld(x, y, z);
     const chunk = this.getChunk(coordinates.chunk.x, coordinates.chunk.z);
 
-    if (chunk) {
+    if (chunk && chunk.isLoaded ) {
       return chunk.getBlock(coordinates.block.x, y, coordinates.block.z);
     } else {
       return null;

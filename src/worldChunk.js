@@ -21,6 +21,7 @@ export class WorldChunk extends THREE.Group {
 
   constructor(size, params) {
     super();
+    this.isLoaded = false;
     this.size = size;
     this.params = params;
   }
@@ -34,6 +35,8 @@ export class WorldChunk extends THREE.Group {
     this.generateResource(rng);
     this.generateTerrain(rng);
     this.generateMeshes();
+
+    this.isLoaded = true;
   }
 
   initialize() {
@@ -103,7 +106,7 @@ export class WorldChunk extends THREE.Group {
 
         // Starting at the terrain height, fill in all the blocks below that height
         for (let y = 0; y < this.size.height; y++) {
-          if (y === height ) {
+          if (y === height) {
             this.setBlockId(x, y, z, blocks.grass.id);
           } else if (y < height) {
             this.setBlockId(x, y, z, blocks.dirt.id);

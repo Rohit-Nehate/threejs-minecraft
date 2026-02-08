@@ -57,7 +57,7 @@ const abientLight = new THREE.AmbientLight(0xffffff, 1);
 scene.add(abientLight);
 
 const directionalLight1 = new THREE.DirectionalLight(0xffffff, 3);
-directionalLight1.position.set(50, 50, 50);
+
 directionalLight1.castShadow = true;
 directionalLight1.shadow.camera.top = 50;
 directionalLight1.shadow.camera.bottom = -50;
@@ -66,8 +66,13 @@ directionalLight1.shadow.camera.right = -50;
 directionalLight1.shadow.camera.near = 1;
 directionalLight1.shadow.camera.far = 100;
 directionalLight1.shadow.bias = -0.01;
+directionalLight1.shadow.mapSize = new THREE.Vector2(2048, 2048);
 
 scene.add(directionalLight1);
+scene.add(directionalLight1.target);
+
+// fog
+scene.fog = new THREE.Fog(0x87ceeb, 20, 100);
 
 // const shadowHelper = new THREE.CameraHelper(directionalLight1.shadow.camera)
 // scene.add(shadowHelper)
@@ -95,9 +100,15 @@ const animate = () => {
 
   renderer.render(scene, player.control.isLocked ? player.camera : camera);
 
+  //shadow updation
+
+  directionalLight1.position.copy(player.camera.position);
+  directionalLight1.position.sub(new THREE.Vector3(-20, -50, -40));
+  directionalLight1.target.position.copy(player.camera.position);
+
   //updates
 
-  physics.update(dt, world, player); // simulating physics 
+  physics.update(dt, world, player); // simulating physics
 
   world.update(player); //calling the world update function
 
@@ -108,5 +119,5 @@ const animate = () => {
   prevTime = currentTime;
 };
 
-createGUI(world, player, physics);
+createGUI(world, player, physics, scene);
 animate();

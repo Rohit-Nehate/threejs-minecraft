@@ -1,7 +1,7 @@
 import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
 import { resources } from "./blocks";
 
-export const createGUI = (world, player, physics) => {
+export const createGUI = (world, player, physics, scene) => {
   const gui = new GUI();
 
   gui.close();
@@ -17,14 +17,14 @@ export const createGUI = (world, player, physics) => {
     .add(physics.highlighter, "visible")
     .name("collision blocks helper");
 
-    
-    
-
   playerFolder.add(player.playerHelper, "visible").name("player helper");
 
   const terrainFolder = worldFolder.addFolder("Terrain");
   terrainFolder.add(world.size, "width", 1, 128, 1).name("chunk width");
   terrainFolder.add(world.size, "height", 1, 64, 1).name("chunk height");
+  terrainFolder.add(scene.fog, "near", 10, 200, 5).name("fog near");
+  terrainFolder.add(scene.fog, "far", 10, 200, 5).name("fog far");
+  terrainFolder.add(world, "asyncLoading").name("Async Loading");
 
   terrainFolder.add(world.params, "seed", 0, 10000, 1).name("Seed");
   terrainFolder.add(world.params.terrain, "scale", 10, 100).name("Chunk Scale");
@@ -32,7 +32,7 @@ export const createGUI = (world, player, physics) => {
     .add(world.params.terrain, "magnitude", 0, 3, 0.1)
     .name("Chunk Magnitude");
   terrainFolder.add(world.params.terrain, "offset", 0, 1).name("Chunk Offset");
-  terrainFolder.add(world, 'renderDistance', 0, 5, 1).name("render Distance")
+  terrainFolder.add(world, "renderDistance", 0, 5, 1).name("render Distance");
 
   const resourcesFolder = gui.addFolder("Resourced");
 
