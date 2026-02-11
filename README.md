@@ -18,7 +18,7 @@ This project focuses on rendering a block-based world in the browser using WebGL
 
 ## 🛠 Tech Stack
 
-- **JavaScript (ES Modules)**
+- **JavaScript**
 - **Three.js**
 - **Vite / npm** (for development server & bundling)
 - **HTML + CSS**
