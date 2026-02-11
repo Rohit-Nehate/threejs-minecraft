@@ -19,7 +19,13 @@ const textures = {
   ironOre: loadTextures("textures/iron_ore.png"),
   coalOre: loadTextures("textures/coal_ore.png"),
   normal: loadTextures("textures/normal.png"),
+  oakLogSide: loadTextures("textures/oak_log_side.png"),
+  oakLogTop: loadTextures("textures/oak_log_top.png"),
+  oakLeaves: loadTextures("textures/oak_leaves.png"),
+  sand: loadTextures("textures/sand.png"),
 };
+
+
 
 export const blocks = {
   empty: {
@@ -28,7 +34,6 @@ export const blocks = {
   grass: {
     id: 1,
     name: "grass",
-    color: 0x559020,
     material: [
       new THREE.MeshLambertMaterial({
         map: textures.dirtSide,
@@ -59,7 +64,6 @@ export const blocks = {
   dirt: {
     id: 2,
     name: "dirt",
-    color: 0x807020,
     material: new THREE.MeshLambertMaterial({
       map: textures.dirt,
       normalMap: textures.normal,
@@ -68,7 +72,6 @@ export const blocks = {
   stone: {
     id: 3,
     name: "stone",
-    color: 0x808080,
     scale: {
       x: 30,
       y: 30,
@@ -77,13 +80,12 @@ export const blocks = {
     rarity: 0.4,
     material: new THREE.MeshLambertMaterial({
       map: textures.stone,
-      normalMap: textures.normal, 
+      normalMap: textures.normal,
     }),
   },
   coalOre: {
     id: 4,
     name: "coalOre",
-    color: 0x000000,
     scale: {
       x: 30,
       y: 2,
@@ -98,7 +100,6 @@ export const blocks = {
   ironOre: {
     id: 5,
     name: "ironOre",
-    color: 0x968969,
     scale: {
       x: 10,
       y: 10,
@@ -109,6 +110,33 @@ export const blocks = {
       map: textures.ironOre,
       normalMap: textures.normal,
     }),
+  },
+  oakLog: {
+    id: 6,
+    name: "oakLog",
+    material: [
+      new THREE.MeshLambertMaterial({ map: textures.oakLogSide }),
+      new THREE.MeshLambertMaterial({ map: textures.oakLogSide }),
+      new THREE.MeshLambertMaterial({ map: textures.oakLogTop }),
+      new THREE.MeshLambertMaterial({ map: textures.oakLogTop }),
+      new THREE.MeshLambertMaterial({ map: textures.oakLogSide }),
+      new THREE.MeshLambertMaterial({ map: textures.oakLogSide }),
+    ],
+  },
+  oakLeaves: {
+    id: 7,
+    name: "oakLeaves",
+    material: new THREE.MeshLambertMaterial({ map: textures.oakLeaves }),
+  },
+  sand: {
+    id: 8,
+    name: "sand",
+    material: new THREE.MeshLambertMaterial({ map: textures.sand }),
+  },
+  cloud: {
+    id: 9,
+    name: "cloud",
+    material: new THREE.MeshLambertMaterial({ color: 0xf0f0f0 }),
   },
 };
 

@@ -6,7 +6,11 @@ export const createGUI = (world, player, physics, scene) => {
 
   gui.close();
 
+  //world folder
+
   const worldFolder = gui.addFolder("World");
+
+  // player folder
 
   const playerFolder = gui.addFolder("Player");
 
@@ -18,6 +22,8 @@ export const createGUI = (world, player, physics, scene) => {
     .name("collision blocks helper");
 
   playerFolder.add(player.playerHelper, "visible").name("player helper");
+
+  // terrain folder
 
   const terrainFolder = worldFolder.addFolder("Terrain");
   terrainFolder.add(world.size, "width", 1, 128, 1).name("chunk width");
@@ -36,6 +42,8 @@ export const createGUI = (world, player, physics, scene) => {
   terrainFolder.add(world.params.terrain, "offset", 0, 1).name("Chunk Offset");
   terrainFolder.add(world, "renderDistance", 0, 5, 1).name("render Distance");
 
+  //resources folder
+
   const resourcesFolder = gui.addFolder("Resourced");
 
   resources.forEach((res) => {
@@ -46,6 +54,19 @@ export const createGUI = (world, player, physics, scene) => {
     resFolder.add(res.scale, "z", 0, 50, 1).name("scale z");
     resFolder.add(res, "rarity", 0, 1, 0.01).name("rarity");
   });
+
+  //trees folder
+
+  const treesFolder = gui.addFolder("Trees");
+  treesFolder
+    .add(world.params.trees.trunk, "minHeight", 2, 10, 1)
+    .name("minimun truck hight");
+  treesFolder
+    .add(world.params.trees.trunk, "maxHeight", 4, 15, 1)
+    .name("maximum truck hight");
+  treesFolder
+    .add(world.params.trees, "frequency", 0.0001, 0.05, 0.0001)
+    .name("tree frequency");
 
   gui.onChange(() => {
     world.generateWorld();

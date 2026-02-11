@@ -24,7 +24,7 @@ export class Player {
   height = 1.75;
   jumpVelocity = 10;
   canJump = false;
-  placeBlock = false
+  placeBlock = false;
 
   cordsparagraph = document.querySelector(".cords");
   raycaster = new THREE.Raycaster(
@@ -74,34 +74,33 @@ export class Player {
     this.updateRaycaster(world);
   }
 
- updateRaycaster(world) {
-  this.raycaster.setFromCamera(crosshair, this.camera);
-  const intersections = this.raycaster.intersectObject(world, true);
+  updateRaycaster(world) {
+    this.raycaster.setFromCamera(crosshair, this.camera);
+    const intersections = this.raycaster.intersectObject(world, true);
 
-  if (intersections.length > 0) {
-    const intersection = intersections[0];
+    if (intersections.length > 0) {
+      const intersection = intersections[0];
 
-    const chunk = intersection.object.parent;
+      const chunk = intersection.object.parent;
 
-    const objectMatrix = new THREE.Matrix4();
-    intersection.object.getMatrixAt(intersection.instanceId, objectMatrix);
+      const objectMatrix = new THREE.Matrix4();
+      intersection.object.getMatrixAt(intersection.instanceId, objectMatrix);
 
-    // world position of the hit block
-    this.selectedCoords = chunk.position.clone();
-    this.selectedCoords.applyMatrix4(objectMatrix);
+      // world position of the hit block
+      this.selectedCoords = chunk.position.clone();
+      this.selectedCoords.applyMatrix4(objectMatrix);
 
-    // store face normal for placement
-    this.selectedNormal = intersection.normal.clone();
+      // store face normal for placement
+      this.selectedNormal = intersection.normal.clone();
 
-    this.selectionHighlight.position.copy(this.selectedCoords);
-    this.selectionHighlight.visible = true;
-
-  } else {
-    this.selectedCoords = null;
-    this.selectedNormal = null;
-    this.selectionHighlight.visible = false;
+      this.selectionHighlight.position.copy(this.selectedCoords);
+      this.selectionHighlight.visible = true;
+    } else {
+      this.selectedCoords = null;
+      this.selectedNormal = null;
+      this.selectionHighlight.visible = false;
+    }
   }
-}
 
   /** @type {THREE.Vector3} */
   get position() {
@@ -138,6 +137,9 @@ export class Player {
       case "Digit3":
       case "Digit4":
       case "Digit5":
+      case "Digit6":
+      case "Digit7":
+      case "Digit8":
         this.activeBlockId = Number(event.key);
         break;
       case "KeyW":

@@ -35,7 +35,8 @@ export class WorldChunk extends THREE.Group {
     this.initialize();
     this.generateResource(rng);
     this.generateTerrain(rng);
-    this.loadPlayerChanges()
+    this.generateTrees(rng);
+    this.loadPlayerChanges();
     this.generateMeshes();
 
     this.isLoaded = true;
@@ -123,15 +124,81 @@ export class WorldChunk extends THREE.Group {
     }
   }
 
-  //this function load all the chnages made by player that is stored in terraformingData 
+  //this function generate trees
 
-  loadPlayerChanges(){
-    for(let x=0; x<this.size.width;x++){
-      for(let y =0; y<this.size.height;y++){
-        for(let z=0; z<this.size.width;z++){
-          if(this.dataStore.contains(this.position.x, this.position.z, x,y,z)){
-            const blockId = this.dataStore.get(this.position.x, this.position.z, x,y,z)
-            this.setBlockId(x,y,x, blockId)
+  generateTrees(rng) {
+    const generateTruck = (rng, x, z) => {
+      const minH = this.params.trees.trunk.minHeight;
+      const maxH = this.params.trees.trunk.maxHeight;
+
+      const trunkHeight = Math.round(minH + (maxH - minH) * rng.random());
+      for (let y = 0; y < this.size.height; y++) {
+        const block = this.getBlock(x, y, z);
+        if (block && block.id === blocks.grass.id) {
+          for (let treeY = y + 1; treeY <= y + trunkHeight; treeY++) {
+            this.setBlockId(x, treeY, z, blocks.oakLog.id);
+          }
+
+          generateLeaves(x, y + trunkHeight, z, rng);
+
+          break;
+        }
+      }
+    };
+
+    const generateLeaves = (leavesX, leavesY, leavesZ, rng) => {
+      const minR = this.params.trees.leaves.minRadius;
+      const maxR = this.params.trees.leaves.maxRadius;
+
+      const leavesRaduis = Math.round(minR + (maxR - minR) * rng.random());
+      for (let x = -leavesRaduis; x < leavesRaduis; x++) {
+        for (let y = -leavesRaduis; y < leavesRaduis; y++) {
+          for (let z = -leavesRaduis; z < leavesRaduis; z++) {
+            // console.log(x,y,z)
+            if (x * x + y * y + z * z > leavesRaduis * leavesRaduis) continue;
+            const block = this.getBlock(leavesX + x, leavesY + y, leavesZ + z);
+            if (block && block.id !== blocks.empty.id) continue;
+            if (rng.random() < this.params.trees.leaves.density) {
+              this.setBlockId(
+                leavesX + x,
+                leavesY + y,
+                leavesZ + z,
+                blocks.oakLeaves.id,
+              );
+            }
+          }
+        }
+      }
+    };
+
+    const offset = this.params.trees.leaves.maxRadius;
+
+    for (let x = offset; x < this.size.width - offset; x++) {
+      for (let z = offset; z < this.size.width - offset; z++) {
+        if (rng.random() < this.params.trees.frequency) {
+          generateTruck(rng, x, z);
+        }
+      }
+    }
+  }
+
+  //this function load all the chnages made by player that is stored in terraformingData
+
+  loadPlayerChanges() {
+    for (let x = 0; x < this.size.width; x++) {
+      for (let y = 0; y < this.size.height; y++) {
+        for (let z = 0; z < this.size.width; z++) {
+          if (
+            this.dataStore.contains(this.position.x, this.position.z, x, y, z)
+          ) {
+            const blockId = this.dataStore.get(
+              this.position.x,
+              this.position.z,
+              x,
+              y,
+              z,
+            );
+            this.setBlockId(x, y, x, blockId);
           }
         }
       }
@@ -376,8 +443,14 @@ export class WorldChunk extends THREE.Group {
     if (block && block.id !== blocks.empty.id) {
       this.deleteBlockInstance(x, y, z);
       this.setBlockId(x, y, z, blocks.empty.id);
-      this.dataStore.set(this.position.x, this.position.z, x, y, z, blocks.empty.id);
-    
+      this.dataStore.set(
+        this.position.x,
+        this.position.z,
+        x,
+        y,
+        z,
+        blocks.empty.id,
+      );
     }
   }
 }
