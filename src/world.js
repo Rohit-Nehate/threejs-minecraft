@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { WorldChunk } from "./worldChunk";
+import { DataStore } from "./terraformingData";
 
 export class World extends THREE.Group {
   // render distance - 1 render == player chunk + 1-1 chunk around player chunk
@@ -24,16 +25,19 @@ export class World extends THREE.Group {
     height: 32,
   };
 
+  dataStore = new DataStore();
+
   constructor(seed = 0) {
     super();
     this.seed = seed;
   }
 
   generateWorld() {
+    this.dataStore.clear();
     this.disposeChunks();
     for (let x = -this.renderDistance; x <= this.renderDistance; x++) {
       for (let z = -this.renderDistance; z <= this.renderDistance; z++) {
-        this.chunk = new WorldChunk(this.size, this.params);
+        this.chunk = new WorldChunk(this.size, this.params, this.dataStore);
         this.chunk.position.set(x * this.size.width, 0, z * this.size.width);
         this.chunk.generateWorld();
         this.chunk.userData = { x, z };
@@ -116,7 +120,7 @@ export class World extends THREE.Group {
   // function to render new chunks
 
   renderChunk(x, z) {
-    const chunk = new WorldChunk(this.size, this.params);
+    const chunk = new WorldChunk(this.size, this.params, this.dataStore);
     chunk.position.set(x * this.size.width, 0, z * this.size.width);
     if (this.asyncLoading) {
       requestIdleCallback(chunk.generateWorld.bind(chunk), { timeout: 1000 });
@@ -132,7 +136,7 @@ export class World extends THREE.Group {
     const coordinates = this.chunkCoordsRelativeToWorld(x, y, z);
     const chunk = this.getChunk(coordinates.chunk.x, coordinates.chunk.z);
 
-    if (chunk && chunk.isLoaded ) {
+    if (chunk && chunk.isLoaded) {
       return chunk.getBlock(coordinates.block.x, y, coordinates.block.z);
     } else {
       return null;
@@ -172,5 +176,61 @@ export class World extends THREE.Group {
       if (chunk.disposeInstances) chunk.disposeInstances();
     });
     this.clear();
+  }
+
+  //handle addBlock function
+
+  handleAddBlock(x, y, z, blockId) {
+    const coords = this.chunkCoordsRelativeToWorld(x, y, z);
+    const chunk = this.getChunk(coords.chunk.x, coords.chunk.z);
+
+    if (chunk) {
+      // console.log(blockId);
+      chunk.addBlock(coords.block.x, coords.block.y, coords.block.z, blockId);
+      this.hideBlock(x - 1, y, z);
+      this.hideBlock(x + 1, y, z);
+      this.hideBlock(x, y - 1, z);
+      this.hideBlock(x, y + 1, z);
+      this.hideBlock(x, y, z - 1);
+      this.hideBlock(x, y, z + 1);
+    }
+  }
+
+  // this function handeles block removing
+
+  handleRemoveBlock(x, y, z) {
+    const coords = this.chunkCoordsRelativeToWorld(x, y, z);
+    const chunk = this.getChunk(coords.chunk.x, coords.chunk.z);
+
+    if (chunk) {
+      chunk.removeBlock(coords.block.x, coords.block.y, coords.block.z);
+
+      this.revealBlock(x - 1, y, z);
+      this.revealBlock(x + 1, y, z);
+      this.revealBlock(x, y - 1, z);
+      this.revealBlock(x, y + 1, z);
+      this.revealBlock(x, y, z - 1);
+      this.revealBlock(x, y, z + 1);
+    }
+  }
+
+  revealBlock(x, y, z) {
+    const coords = this.chunkCoordsRelativeToWorld(x, y, z);
+    const chunk = this.getChunk(coords.chunk.x, coords.chunk.z);
+
+    if (chunk) {
+      chunk.addBlockInstance(coords.block.x, coords.block.y, coords.block.z);
+    }
+  }
+  hideBlock(x, y, z) {
+    const coords = this.chunkCoordsRelativeToWorld(x, y, z);
+    const chunk = this.getChunk(coords.chunk.x, coords.chunk.z);
+
+    if (
+      chunk &&
+      chunk.isBlockObscured(coords.block.x, coords.block.y, coords.block.z)
+    ) {
+      chunk.deleteBlockInstance(coords.block.x, coords.block.y, coords.block.z);
+    }
   }
 }

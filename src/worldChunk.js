@@ -19,11 +19,12 @@ export class WorldChunk extends THREE.Group {
 
   threshold = 0.5;
 
-  constructor(size, params) {
+  constructor(size, params, dataStore) {
     super();
     this.isLoaded = false;
     this.size = size;
     this.params = params;
+    this.dataStore = dataStore;
   }
 
   /**
@@ -34,6 +35,7 @@ export class WorldChunk extends THREE.Group {
     this.initialize();
     this.generateResource(rng);
     this.generateTerrain(rng);
+    this.loadPlayerChanges()
     this.generateMeshes();
 
     this.isLoaded = true;
@@ -108,10 +110,28 @@ export class WorldChunk extends THREE.Group {
         for (let y = 0; y < this.size.height; y++) {
           if (y === height) {
             this.setBlockId(x, y, z, blocks.grass.id);
-          } else if (y < height) {
+          } else if (
+            y < height &&
+            this.getBlock(x, y, z).id === blocks.empty.id
+          ) {
             this.setBlockId(x, y, z, blocks.dirt.id);
           } else if (y > height) {
             this.setBlockId(x, y, z, blocks.empty.id);
+          }
+        }
+      }
+    }
+  }
+
+  //this function load all the chnages made by player that is stored in terraformingData 
+
+  loadPlayerChanges(){
+    for(let x=0; x<this.size.width;x++){
+      for(let y =0; y<this.size.height;y++){
+        for(let z=0; z<this.size.width;z++){
+          if(this.dataStore.contains(this.position.x, this.position.z, x,y,z)){
+            const blockId = this.dataStore.get(this.position.x, this.position.z, x,y,z)
+            this.setBlockId(x,y,x, blockId)
           }
         }
       }
@@ -135,7 +155,7 @@ export class WorldChunk extends THREE.Group {
           block.material,
           maxCount,
         );
-        mesh.name = block.name;
+        mesh.name = block.id;
         mesh.count = 0;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
@@ -276,5 +296,88 @@ export class WorldChunk extends THREE.Group {
       if (instance.dispose) instance.dispose();
     });
     this.clear();
+  }
+
+  //this function is used to add a block instance
+
+  addBlockInstance(x, y, z) {
+    const block = this.getBlock(x, y, z);
+
+    // If this block is non-empty and does not already have an instance, create a new one
+    if (!block || block.id === blocks.empty.id) return;
+    if (block.instanceId !== null) return;
+
+    // Append a new instance to the end of our InstancedMesh
+    const mesh = this.children.find(
+      (instanceMesh) => instanceMesh.name === block.id,
+    );
+    const instanceId = mesh.count++;
+    this.setBlockInstanceId(x, y, z, instanceId);
+    const matrix = new THREE.Matrix4();
+    matrix.setPosition(x, y, z);
+    mesh.setMatrixAt(instanceId, matrix);
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
+  }
+
+  //this function performes the remove operation
+
+  deleteBlockInstance(x, y, z) {
+    const block = this.getBlock(x, y, z);
+
+    if (block.id === blocks.empty.id || block.instanceId === null) return;
+    // if not returned
+
+    const mesh = this.children.find(
+      (intantMesh) => intantMesh.name === block.id,
+    );
+    const instanceId = block.instanceId;
+
+    // We can't remove an instance directly so we will swap it with the last instance
+    // and decrease the count by 1. We need to do two things:
+    //   1. Swap the matrix of the last instance with the matrix at `instanceId`
+    //   2. Set the instanceId for the last instance to `instanceId`
+
+    const matrix = new THREE.Matrix4();
+    mesh.getMatrixAt(mesh.count - 1, matrix);
+
+    const vector = new THREE.Vector3();
+    vector.setFromMatrixPosition(matrix);
+
+    this.setBlockInstanceId(vector.x, vector.y, vector.z, instanceId);
+
+    mesh.setMatrixAt(instanceId, matrix);
+
+    mesh.count--;
+
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
+
+    this.setBlockInstanceId(x, y, z, null);
+  }
+
+  addBlock(x, y, z, blockId) {
+    // Safety check that we aren't adding a block for one that
+    // already has an instance
+
+    const block = this.getBlock(x, y, z);
+    if (block.id === blocks.empty.id) {
+      this.setBlockId(x, y, z, blockId);
+      this.addBlockInstance(x, y, z);
+      this.dataStore.set(this.position.x, this.position.z, x, y, z, blockId);
+    }
+  }
+
+  // this function removes block from the world
+
+  removeBlock(x, y, z) {
+    const block = this.getBlock(x, y, z);
+
+    if (block && block.id !== blocks.empty.id) {
+      this.deleteBlockInstance(x, y, z);
+      this.setBlockId(x, y, z, blocks.empty.id);
+      this.dataStore.set(this.position.x, this.position.z, x, y, z, blocks.empty.id);
+    
+    }
   }
 }

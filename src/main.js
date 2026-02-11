@@ -9,17 +9,37 @@ import { Physics } from "./physics";
 const stats = new Stats();
 document.body.append(stats.dom);
 
-// // load textures
-// const textureLoader = new TextureLoader()
+//event listener
+document.addEventListener("contextmenu", e => e.preventDefault());
 
-// const dirtTexture = textureLoader.load('textures/dirt.png')
-// const dirtNormal = textureLoader.load('textures/dirt-normal-high.png')
+document.addEventListener("mousedown", (e) => {
 
-// dirtTexture.magFilter = THREE.NearestFilter;
-// dirtTexture.minFilter = THREE.NearestFilter;
-// dirtTexture.generateMipmaps = false
-// dirtTexture.colorSpace = THREE.SRGBColorSpace
+  if (!player.control.isLocked) return;
+  if (!player.selectedCoords) return;
 
+  const { x, y, z } = player.selectedCoords;
+
+
+  if (e.button === 0) {
+    world.handleRemoveBlock(x, y, z);
+  }
+
+  // 🟦 RIGHT CLICK → PLACE
+  if (e.button === 2) {
+    const n = player.selectedNormal;
+
+    world.handleAddBlock(
+      x + n.x,
+      y + n.y,
+      z + n.z,
+      player.activeBlockId
+    );
+  }
+
+});
+
+
+// document.addEventListener("mousedown", onMouseDown);
 // create scene
 const scene = new THREE.Scene();
 
@@ -115,6 +135,8 @@ const animate = () => {
   stats.update(); // fps rendering on each render
 
   controls.update(); // updating controls on each render
+
+  player.update(world); // update the player related operations
 
   prevTime = currentTime;
 };

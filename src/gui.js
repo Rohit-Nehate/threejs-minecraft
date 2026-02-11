@@ -22,8 +22,10 @@ export const createGUI = (world, player, physics, scene) => {
   const terrainFolder = worldFolder.addFolder("Terrain");
   terrainFolder.add(world.size, "width", 1, 128, 1).name("chunk width");
   terrainFolder.add(world.size, "height", 1, 64, 1).name("chunk height");
+
   terrainFolder.add(scene.fog, "near", 10, 200, 5).name("fog near");
   terrainFolder.add(scene.fog, "far", 10, 200, 5).name("fog far");
+
   terrainFolder.add(world, "asyncLoading").name("Async Loading");
 
   terrainFolder.add(world.params, "seed", 0, 10000, 1).name("Seed");

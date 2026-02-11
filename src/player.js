@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { PointerLockControls } from "three/examples/jsm/Addons.js";
 
+const crosshair = new THREE.Vector2();
+
 export class Player {
   camera = new THREE.PerspectiveCamera(
     70,
@@ -11,6 +13,7 @@ export class Player {
   control = new PointerLockControls(this.camera, document.body);
 
   cameraHelper = new THREE.CameraHelper(this.camera);
+  activeBlockId = 2; //block id player can place
 
   input = new THREE.Vector3();
   velocity = new THREE.Vector3();
@@ -21,11 +24,19 @@ export class Player {
   height = 1.75;
   jumpVelocity = 10;
   canJump = false;
+  placeBlock = false
 
   cordsparagraph = document.querySelector(".cords");
+  raycaster = new THREE.Raycaster(
+    new THREE.Vector3(),
+    new THREE.Vector3(),
+    0,
+    8,
+  );
+  selectedCoords = null;
 
   constructor(scene) {
-    this.camera.position.set(32, 64 , 32);
+    this.camera.position.set(32, 64, 32);
     scene.add(this.camera);
     scene.add(this.cameraHelper);
     this.cameraHelper.visible = false;
@@ -39,7 +50,58 @@ export class Player {
     );
     scene.add(this.playerHelper);
     this.playerHelper.visible = false;
+
+    const geometry = new THREE.BoxGeometry(1.001, 1.001, 1.001);
+
+    this.selectionHighlight = new THREE.Mesh(
+      new THREE.BoxGeometry(1.01, 1.01, 1.01),
+      new THREE.MeshBasicMaterial({
+        wireframe: true,
+        transparent: true,
+        opacity: 0,
+      }),
+    );
+    scene.add(this.selectionHighlight);
+
+    const edges = new THREE.EdgesGeometry(geometry);
+    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
+
+    const outline = new THREE.LineSegments(edges, lineMaterial);
+    this.selectionHighlight.add(outline);
   }
+
+  update(world) {
+    this.updateRaycaster(world);
+  }
+
+ updateRaycaster(world) {
+  this.raycaster.setFromCamera(crosshair, this.camera);
+  const intersections = this.raycaster.intersectObject(world, true);
+
+  if (intersections.length > 0) {
+    const intersection = intersections[0];
+
+    const chunk = intersection.object.parent;
+
+    const objectMatrix = new THREE.Matrix4();
+    intersection.object.getMatrixAt(intersection.instanceId, objectMatrix);
+
+    // world position of the hit block
+    this.selectedCoords = chunk.position.clone();
+    this.selectedCoords.applyMatrix4(objectMatrix);
+
+    // store face normal for placement
+    this.selectedNormal = intersection.normal.clone();
+
+    this.selectionHighlight.position.copy(this.selectedCoords);
+    this.selectionHighlight.visible = true;
+
+  } else {
+    this.selectedCoords = null;
+    this.selectedNormal = null;
+    this.selectionHighlight.visible = false;
+  }
+}
 
   /** @type {THREE.Vector3} */
   get position() {
@@ -71,6 +133,13 @@ export class Player {
     }
     this.speedMultiplyer = 1;
     switch (event.code) {
+      case "Digit1":
+      case "Digit2":
+      case "Digit3":
+      case "Digit4":
+      case "Digit5":
+        this.activeBlockId = Number(event.key);
+        break;
       case "KeyW":
         this.input.z = this.maxSpeed;
         break;
@@ -113,7 +182,6 @@ export class Player {
       case "ShiftLeft":
         this.speedMultiplyer = 1;
         break;
-        
     }
   }
 
