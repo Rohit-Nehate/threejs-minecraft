@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { PointerLockControls } from "three/examples/jsm/Addons.js";
+import { Tool } from "./tool";
 
 const crosshair = new THREE.Vector2();
 
@@ -12,8 +13,10 @@ export class Player {
   );
   control = new PointerLockControls(this.camera, document.body);
 
+  inventory = {};
+
   cameraHelper = new THREE.CameraHelper(this.camera);
-  activeBlockId = 2; //block id player can place
+  activeBlockId = 1; //block id player can place
 
   input = new THREE.Vector3();
   velocity = new THREE.Vector3();
@@ -35,11 +38,15 @@ export class Player {
   );
   selectedCoords = null;
 
+  tool = new Tool();
+
   constructor(scene) {
     this.camera.position.set(32, 64, 32);
+    this.camera.layers.enable(1);
     scene.add(this.camera);
     scene.add(this.cameraHelper);
     this.cameraHelper.visible = false;
+    this.camera.add(this.tool);
 
     document.addEventListener("keyup", this.onKeyUP.bind(this));
     document.addEventListener("keydown", this.onKeyDown.bind(this));
@@ -72,6 +79,7 @@ export class Player {
 
   update(world) {
     this.updateRaycaster(world);
+    this.tool.update();
   }
 
   updateRaycaster(world) {
@@ -140,7 +148,16 @@ export class Player {
       case "Digit6":
       case "Digit7":
       case "Digit8":
+        document
+          .getElementById(`toolbar-${this.activeBlockId}`)
+          .classList.remove("selected");
         this.activeBlockId = Number(event.key);
+        document
+          .getElementById(`toolbar-${this.activeBlockId}`)
+          .classList.add("selected");
+        // console.log(this.inventory)
+        this.tool.setMesh(this.inventory[this.activeBlockId]);
+
         break;
       case "KeyW":
         this.input.z = this.maxSpeed;
@@ -155,8 +172,9 @@ export class Player {
         this.input.x = this.maxSpeed;
         break;
       case "KeyR":
-        this.camera.position.set(32, 64, 32);
+        this.camera.position.set(this.position.x, 64, this.position.z);
         this.speedMultiplyer = 0;
+
         break;
       case "ShiftLeft":
         this.speedMultiplyer = 1.5;

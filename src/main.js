@@ -5,39 +5,31 @@ import Stats from "three/examples/jsm/libs/stats.module.js";
 import { createGUI } from "./gui";
 import { Player } from "./player";
 import { Physics } from "./physics";
+import { ModelLoader } from "./modelLoader";
 
 const stats = new Stats();
 document.body.append(stats.dom);
 
 //event listener
-document.addEventListener("contextmenu", e => e.preventDefault());
+document.addEventListener("contextmenu", (e) => e.preventDefault());
 
 document.addEventListener("mousedown", (e) => {
-
   if (!player.control.isLocked) return;
   if (!player.selectedCoords) return;
-
+player.tool.startAnimation()
   const { x, y, z } = player.selectedCoords;
-
 
   if (e.button === 0) {
     world.handleRemoveBlock(x, y, z);
   }
 
-  // 🟦 RIGHT CLICK → PLACE
+  //  RIGHT CLICK TO PLACE
   if (e.button === 2) {
     const n = player.selectedNormal;
 
-    world.handleAddBlock(
-      x + n.x,
-      y + n.y,
-      z + n.z,
-      player.activeBlockId
-    );
+    world.handleAddBlock(x + n.x, y + n.y, z + n.z, player.activeBlockId);
   }
-
 });
-
 
 // document.addEventListener("mousedown", onMouseDown);
 // create scene
@@ -50,6 +42,7 @@ const camera = new THREE.PerspectiveCamera(
   window.innerWidth / window.innerHeight,
 );
 camera.position.set(-32, 100, -10);
+camera.layers.enable(1);
 
 //create renderer
 
@@ -72,11 +65,30 @@ scene.add(world);
 const player = new Player(scene);
 const physics = new Physics(scene);
 
+//modelloader
+
+const modelLoader = new ModelLoader();
+modelLoader.loadModels((models) => {
+
+  player.inventory= {
+    1: models.grass,
+    2: models.dirt,
+    3: models.stone,
+    4: models.coalOre,
+    5: models.ironOre,
+    6: models.oakLog,
+    7: models.oakLeaves,
+    8: models.sand
+  }
+
+  player.tool.setMesh(models.grass);
+});
+
 //lights
 const abientLight = new THREE.AmbientLight(0xffffff, 1);
 scene.add(abientLight);
 
-const directionalLight1 = new THREE.DirectionalLight(0xffffff, 3);
+const directionalLight1 = new THREE.DirectionalLight(0xfffff0, 2);
 
 directionalLight1.castShadow = true;
 directionalLight1.shadow.camera.top = 50;
@@ -101,8 +113,10 @@ scene.fog = new THREE.Fog(0x87ceeb, 20, 100);
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-  player.camera.aspect = aspect = window.innerWidth / window.innerHeight;
+ 
+  player.camera.aspect =  window.innerWidth / window.innerHeight;
   player.camera.updateProjectionMatrix();
+  
 
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
@@ -137,6 +151,8 @@ const animate = () => {
   controls.update(); // updating controls on each render
 
   player.update(world); // update the player related operations
+
+ 
 
   prevTime = currentTime;
 };

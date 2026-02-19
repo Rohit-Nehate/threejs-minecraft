@@ -12,7 +12,7 @@ export const createGUI = (world, player, physics, scene) => {
 
   // player folder
 
-  const playerFolder = gui.addFolder("Player");
+  const playerFolder = gui.addFolder("Player").close();
 
   playerFolder.add(player, "maxSpeed", 1, 20).name("Player Speed");
 
@@ -25,7 +25,7 @@ export const createGUI = (world, player, physics, scene) => {
 
   // terrain folder
 
-  const terrainFolder = worldFolder.addFolder("Terrain");
+  const terrainFolder = worldFolder.addFolder("Terrain").close();
   terrainFolder.add(world.size, "width", 1, 128, 1).name("chunk width");
   terrainFolder.add(world.size, "height", 1, 64, 1).name("chunk height");
 
@@ -37,14 +37,14 @@ export const createGUI = (world, player, physics, scene) => {
   terrainFolder.add(world.params, "seed", 0, 10000, 1).name("Seed");
   terrainFolder.add(world.params.terrain, "scale", 10, 100).name("Chunk Scale");
   terrainFolder
-    .add(world.params.terrain, "magnitude", 0, 3, 0.1)
+    .add(world.params.terrain, "magnitude", 0, 1, 0.1)
     .name("Chunk Magnitude");
   terrainFolder.add(world.params.terrain, "offset", 0, 1).name("Chunk Offset");
   terrainFolder.add(world, "renderDistance", 0, 5, 1).name("render Distance");
 
   //resources folder
 
-  const resourcesFolder = gui.addFolder("Resourced");
+  const resourcesFolder = gui.addFolder("Resourced").close();
 
   resources.forEach((res) => {
     const resFolder = resourcesFolder.addFolder(res.name);
@@ -57,7 +57,10 @@ export const createGUI = (world, player, physics, scene) => {
 
   //trees folder
 
-  const treesFolder = gui.addFolder("Trees");
+  const treesFolder = gui.addFolder("Trees").close();
+  treesFolder
+    .add(world.params.trees, "generateTrees")
+    .name("toogle Generate trees");
   treesFolder
     .add(world.params.trees.trunk, "minHeight", 2, 10, 1)
     .name("minimun truck hight");
@@ -68,7 +71,28 @@ export const createGUI = (world, player, physics, scene) => {
     .add(world.params.trees, "frequency", 0.0001, 0.05, 0.0001)
     .name("tree frequency");
 
+  treesFolder
+    .add(world.params.trees.leaves, "density", 0, 1, 0.01)
+    .name("leaves density");
+  treesFolder
+    .add(world.params.trees.leaves, "minRadius", 2, 4, 1)
+    .name("leaves min radius");
+  treesFolder
+    .add(world.params.trees.leaves, "maxRadius", 4, 8, 1)
+    .name("leaves max radius");
+
+  // clouds folder
+
+  const cloudsFolder = gui.addFolder("Clouds").close();
+  cloudsFolder.add(world.params.clouds, "scale", 10, 50, 5).name("cloud Scale");
+  cloudsFolder
+    .add(world.params.clouds, "density", 0, 1, 0.1)
+    .name("cloud density");
+  cloudsFolder
+    .add(world.params.clouds, "generateClouds")
+    .name("generate clouds");
+
   gui.onChange(() => {
-    world.generateWorld();
+    world.generateWorld(true);
   });
 };

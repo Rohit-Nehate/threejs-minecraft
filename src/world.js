@@ -12,13 +12,15 @@ export class World extends THREE.Group {
    * Parameters for terrain generation
    */
   params = {
-    seed: 0,
+    seed: 1,
     terrain: {
-      scale: 30,
-      magnitude: 0.2,
-      offset: 0.5,
+      scale: 50,
+      magnitude: 5,
+      offset: 10,
+      waterOffset: 8,
     },
     trees: {
+      generateTrees: true,
       trunk: {
         minHeight: 4,
         maxHeight: 7,
@@ -28,7 +30,12 @@ export class World extends THREE.Group {
         maxRadius: 4,
         density: 0.5,
       },
-      frequency: 0.002,
+      frequency: 0.001,
+    },
+    clouds: {
+      scale: 20,
+      density: 0.2,
+      generateClouds: true,
     },
   };
 
@@ -42,10 +49,57 @@ export class World extends THREE.Group {
   constructor(seed = 0) {
     super();
     this.seed = seed;
+
+    this.notification = document.querySelector(".notification");
+
+    document.addEventListener("keydown", (e) => {
+      switch (e.code) {
+        case "F1":
+          this.saveWorld();
+          break;
+        case "F2":
+          this.loadWorld();
+          break;
+      }
+    });
   }
 
-  generateWorld() {
-    this.dataStore.clear();
+  saveWorld() {
+    localStorage.setItem("world_params", JSON.stringify(this.params));
+    localStorage.setItem("world_data", JSON.stringify(this.dataStore.data));
+    this.notification.innerHTML = "WORLD SAVED";
+
+    setTimeout(() => {
+      this.notification.innerHTML = "";
+    }, 2000);
+  }
+
+  loadWorld() {
+    const params = localStorage.getItem("world_params");
+    const data = localStorage.getItem("world_data");
+
+    if (!params || !data) {
+      this.notification.innerHTML = "NO SAVE FOUND";
+      return;
+    }
+
+    this.params = JSON.parse(params);
+    this.dataStore.data = JSON.parse(data);
+
+    this.notification.innerHTML = "WORLD LOADED";
+
+    setTimeout(() => {
+      this.notification.innerHTML = "";
+    }, 2000);
+
+    this.generateWorld();
+  }
+
+  generateWorld(clearDatastore = false) {
+    if (clearDatastore) {
+      this.dataStore.clear();
+    }
+
     this.disposeChunks();
     for (let x = -this.renderDistance; x <= this.renderDistance; x++) {
       for (let z = -this.renderDistance; z <= this.renderDistance; z++) {

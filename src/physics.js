@@ -77,7 +77,7 @@ export class Physics {
       for (let y = extents.Ymin; y <= extents.Ymax; y++) {
         for (let z = extents.Zmin; z <= extents.Zmax; z++) {
           const block = world.getBlock(x, y, z);
-          if (block && block.id !== blocks.empty.id) {
+          if (block && block.id !== blocks.empty.id&&block.id !== blocks.cloud.id) {
             const blockPos = { x, y, z };
             candidates.push(blockPos);
             this.highlightBlocks(blockPos);

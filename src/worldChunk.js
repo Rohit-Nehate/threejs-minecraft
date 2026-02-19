@@ -35,7 +35,12 @@ export class WorldChunk extends THREE.Group {
     this.initialize();
     this.generateResource(rng);
     this.generateTerrain(rng);
-    this.generateTrees(rng);
+    if (this.params.trees.generateTrees) {
+      this.generateTrees();
+    }
+    if (this.params.clouds.generateClouds) {
+      this.generateClouds(rng);
+    }
     this.loadPlayerChanges();
     this.generateMeshes();
 
@@ -99,7 +104,7 @@ export class WorldChunk extends THREE.Group {
           this.params.terrain.offset + this.params.terrain.magnitude * value;
 
         // Compute final height of terrain at this location
-        let height = this.size.height * scaledNoise;
+        let height = scaledNoise;
 
         // Clamp between 0 and max height
         height = Math.max(
@@ -109,7 +114,10 @@ export class WorldChunk extends THREE.Group {
 
         // Starting at the terrain height, fill in all the blocks below that height
         for (let y = 0; y < this.size.height; y++) {
-          if (y === height) {
+           if (y <= this.params.terrain.waterOffset && y === height) {
+            this.setBlockId(x, y, z, blocks.sand.id);
+          } 
+          else if (y === height) {
             this.setBlockId(x, y, z, blocks.grass.id);
           } else if (
             y < height &&
@@ -126,15 +134,19 @@ export class WorldChunk extends THREE.Group {
 
   //this function generate trees
 
-  generateTrees(rng) {
+  generateTrees() {
     const generateTruck = (rng, x, z) => {
       const minH = this.params.trees.trunk.minHeight;
       const maxH = this.params.trees.trunk.maxHeight;
 
       const trunkHeight = Math.round(minH + (maxH - minH) * rng.random());
-      for (let y = 0; y < this.size.height; y++) {
+      for (let y = this.size.height; y > 0; y--) {
         const block = this.getBlock(x, y, z);
-        if (block && block.id === blocks.grass.id) {
+        if (
+          block &&
+          block.id === blocks.grass.id &&
+          y > this.params.terrain.waterOffset
+        ) {
           for (let treeY = y + 1; treeY <= y + trunkHeight; treeY++) {
             this.setBlockId(x, treeY, z, blocks.oakLog.id);
           }
@@ -173,10 +185,30 @@ export class WorldChunk extends THREE.Group {
 
     const offset = this.params.trees.leaves.maxRadius;
 
+    let rng = new RNG(this.params.seed);
     for (let x = offset; x < this.size.width - offset; x++) {
       for (let z = offset; z < this.size.width - offset; z++) {
         if (rng.random() < this.params.trees.frequency) {
           generateTruck(rng, x, z);
+        }
+      }
+    }
+  }
+
+  //this function is used to generate clouds
+  generateClouds(rng) {
+    const simplex = new SimplexNoise(rng);
+    for (let x = 0; x < this.size.width; x++) {
+      for (let z = 0; z < this.size.width; z++) {
+        const value =
+          (simplex.noise(
+            (this.position.x + x) / this.params.clouds.scale,
+            (this.position.z + z) / this.params.clouds.scale,
+          ) +
+            1) *
+          0.5;
+        if (value < this.params.clouds.density) {
+          this.setBlockId(x, this.size.height - 1, z, blocks.cloud.id);
         }
       }
     }
@@ -205,8 +237,36 @@ export class WorldChunk extends THREE.Group {
     }
   }
 
+  //this function generates water
+
+  generateWater() {
+    const waterMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(),
+      new THREE.MeshLambertMaterial({
+        color: 0x9090e0,
+        transparent: true,
+        opacity: 0.5,
+        side: THREE.DoubleSide,
+      }),
+    );
+    waterMesh.rotateX(Math.PI / 2);
+    waterMesh.position.set(
+      this.size.width / 2,
+      this.params.terrain.waterOffset + 0.3,
+      this.size.width / 2,
+    );
+    waterMesh.scale.set(this.size.width, this.size.width, 1);
+    waterMesh.layers.set(1);
+
+    this.add(waterMesh);
+  }
+
+  //this function generates instance meshes
+
   generateMeshes() {
     this.disposeChildren();
+
+    this.generateWater();
     // Initialize instanced mesh to total size of world
     const maxCount = this.size.width * this.size.width * this.size.height;
 
@@ -424,8 +484,8 @@ export class WorldChunk extends THREE.Group {
   }
 
   addBlock(x, y, z, blockId) {
-    // Safety check that we aren't adding a block for one that
-    // already has an instance
+
+
 
     const block = this.getBlock(x, y, z);
     if (block.id === blocks.empty.id) {

@@ -136,7 +136,7 @@ export const blocks = {
   cloud: {
     id: 9,
     name: "cloud",
-    material: new THREE.MeshLambertMaterial({ color: 0xf0f0f0 }),
+    material: new THREE.MeshLambertMaterial({  transparent: true }),
   },
 };
 
