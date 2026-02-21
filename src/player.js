@@ -148,6 +148,7 @@ export class Player {
       case "Digit6":
       case "Digit7":
       case "Digit8":
+      case "Digit9":
         document
           .getElementById(`toolbar-${this.activeBlockId}`)
           .classList.remove("selected");

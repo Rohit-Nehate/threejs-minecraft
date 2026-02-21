@@ -23,9 +23,8 @@ const textures = {
   oakLogTop: loadTextures("textures/oak_log_top.png"),
   oakLeaves: loadTextures("textures/oak_leaves.png"),
   sand: loadTextures("textures/sand.png"),
+  oakPlanks: loadTextures("textures/oak_planks.png"),
 };
-
-
 
 export const blocks = {
   empty: {
@@ -133,10 +132,15 @@ export const blocks = {
     name: "sand",
     material: new THREE.MeshLambertMaterial({ map: textures.sand }),
   },
+  oakPlanks: {
+    id: 9,
+    name: "oakPlanks",
+    material: new THREE.MeshLambertMaterial({ map: textures.oakPlanks }),
+  },
   cloud: {
     id: 10,
     name: "cloud",
-    material: new THREE.MeshLambertMaterial({  transparent: true }),
+    material: new THREE.MeshLambertMaterial({ transparent: true }),
   },
 };
 

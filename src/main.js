@@ -87,6 +87,7 @@ modelLoader.loadModels((models) => {
     6: models.oakLog,
     7: models.oakLeaves,
     8: models.sand,
+    9: models.oakPlanks,
   };
 
   player.tool.setMesh(models.grass);

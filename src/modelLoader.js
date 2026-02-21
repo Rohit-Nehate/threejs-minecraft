@@ -12,6 +12,7 @@ export class ModelLoader {
     oakLog: "models/oak_log.glb",
     sand: "models/sand.glb",
     stone: "models/stone.glb",
+    oakPlanks: "models/oak_planks.glb",
   };
 
   loadModels(onLoad) {
