@@ -138,11 +138,12 @@ export const blocks = {
     material: new THREE.MeshLambertMaterial({ map: textures.oakPlanks }),
   },
   cloud: {
-    id: 9,
+    id: 10,
     name: "cloud",
     material: new THREE.MeshLambertMaterial({ transparent: true }),
   },
 };
 
 export const resources = [blocks.stone, blocks.coalOre, blocks.ironOre];
+
 
