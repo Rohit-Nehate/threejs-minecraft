@@ -5,7 +5,7 @@ This project focuses on rendering a block-based world in the browser using WebGL
 
 ---
 
-# Live demo: <a href="https://rohit-nehate.github.io/threejs-minecraft/"> CLICK HERE </a>
+## Live demo: <a href="https://rohit-nehate.github.io/threejs-minecraft/"> CLICK HERE </a>
 
 ---
 
@@ -20,7 +20,6 @@ This project focuses on rendering a block-based world in the browser using WebGL
 
 ---
 
-## Live Link : https://rohit-nehate.github.io/threejs-minecraft/
 
 ## 🛠 Tech Stack
 
