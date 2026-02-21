@@ -16,7 +16,7 @@ document.addEventListener("contextmenu", (e) => e.preventDefault());
 document.addEventListener("mousedown", (e) => {
   if (!player.control.isLocked) return;
   if (!player.selectedCoords) return;
-player.tool.startAnimation()
+  player.tool.startAnimation();
   const { x, y, z } = player.selectedCoords;
 
   if (e.button === 0) {
@@ -27,7 +27,16 @@ player.tool.startAnimation()
   if (e.button === 2) {
     const n = player.selectedNormal;
 
-    world.handleAddBlock(x + n.x, y + n.y, z + n.z, player.activeBlockId);
+    const placePos = new THREE.Vector3(x + n.x, y + n.y, z + n.z);
+
+    if (player.canPlaceBlockAt(placePos)) {
+      world.handleAddBlock(
+        placePos.x,
+        placePos.y,
+        placePos.z,
+        player.activeBlockId,
+      );
+    }
   }
 });
 
@@ -69,8 +78,7 @@ const physics = new Physics(scene);
 
 const modelLoader = new ModelLoader();
 modelLoader.loadModels((models) => {
-
-  player.inventory= {
+  player.inventory = {
     1: models.grass,
     2: models.dirt,
     3: models.stone,
@@ -78,8 +86,8 @@ modelLoader.loadModels((models) => {
     5: models.ironOre,
     6: models.oakLog,
     7: models.oakLeaves,
-    8: models.sand
-  }
+    8: models.sand,
+  };
 
   player.tool.setMesh(models.grass);
 });
@@ -97,8 +105,11 @@ directionalLight1.shadow.camera.left = 50;
 directionalLight1.shadow.camera.right = -50;
 directionalLight1.shadow.camera.near = 1;
 directionalLight1.shadow.camera.far = 100;
-directionalLight1.shadow.bias = -0.01;
+directionalLight1.shadow.bias = -0.0005;
+directionalLight1.shadow.normalBias = 0.02;
 directionalLight1.shadow.mapSize = new THREE.Vector2(2048, 2048);
+directionalLight1.position.set(50, 100, 50);
+directionalLight1.target.position.set(0, 0, 0);
 
 scene.add(directionalLight1);
 scene.add(directionalLight1.target);
@@ -113,10 +124,9 @@ scene.fog = new THREE.Fog(0x87ceeb, 20, 100);
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
- 
-  player.camera.aspect =  window.innerWidth / window.innerHeight;
+
+  player.camera.aspect = window.innerWidth / window.innerHeight;
   player.camera.updateProjectionMatrix();
-  
 
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
@@ -137,7 +147,7 @@ const animate = () => {
   //shadow updation
 
   directionalLight1.position.copy(player.camera.position);
-  directionalLight1.position.sub(new THREE.Vector3(-20, -50, -40));
+  directionalLight1.position.sub(new THREE.Vector3(-40, -50, -40));
   directionalLight1.target.position.copy(player.camera.position);
 
   //updates
@@ -151,8 +161,6 @@ const animate = () => {
   controls.update(); // updating controls on each render
 
   player.update(world); // update the player related operations
-
- 
 
   prevTime = currentTime;
 };

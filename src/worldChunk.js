@@ -114,10 +114,9 @@ export class WorldChunk extends THREE.Group {
 
         // Starting at the terrain height, fill in all the blocks below that height
         for (let y = 0; y < this.size.height; y++) {
-           if (y <= this.params.terrain.waterOffset && y === height) {
+          if (y <= this.params.terrain.waterOffset && y === height) {
             this.setBlockId(x, y, z, blocks.sand.id);
-          } 
-          else if (y === height) {
+          } else if (y === height) {
             this.setBlockId(x, y, z, blocks.grass.id);
           } else if (
             y < height &&
@@ -230,7 +229,7 @@ export class WorldChunk extends THREE.Group {
               y,
               z,
             );
-            this.setBlockId(x, y, x, blockId);
+            this.setBlockId(x, y, z, blockId);
           }
         }
       }
@@ -484,9 +483,6 @@ export class WorldChunk extends THREE.Group {
   }
 
   addBlock(x, y, z, blockId) {
-
-
-
     const block = this.getBlock(x, y, z);
     if (block.id === blocks.empty.id) {
       this.setBlockId(x, y, z, blockId);

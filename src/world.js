@@ -54,10 +54,10 @@ export class World extends THREE.Group {
 
     document.addEventListener("keydown", (e) => {
       switch (e.code) {
-        case "F1":
+        case "KeyO":
           this.saveWorld();
           break;
-        case "F2":
+        case "KeyL":
           this.loadWorld();
           break;
       }

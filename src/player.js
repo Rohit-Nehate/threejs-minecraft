@@ -187,6 +187,28 @@ export class Player {
     }
   }
 
+  canPlaceBlockAt(pos) {
+  const playerPos = this.position;
+
+  const playerMinY = playerPos.y - this.height;
+  const playerMaxY = playerPos.y;
+
+  const blockMinX = pos.x - 0.5;
+  const blockMaxX = pos.x + 0.5;
+  const blockMinY = pos.y - 0.5;
+  const blockMaxY = pos.y + 0.5;
+  const blockMinZ = pos.z - 0.5;
+  const blockMaxZ = pos.z + 0.5;
+
+  const dx = Math.max(blockMinX - playerPos.x, 0, playerPos.x - blockMaxX);
+  const dz = Math.max(blockMinZ - playerPos.z, 0, playerPos.z - blockMaxZ);
+
+  const horizontalOverlap = dx * dx + dz * dz < this.radius * this.radius;
+  const verticalOverlap = blockMaxY > playerMinY && blockMinY < playerMaxY;
+
+  return !(horizontalOverlap && verticalOverlap);
+}
+
   /** @param {onKeyUP} event */
 
   onKeyUP(event) {

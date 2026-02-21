@@ -5,6 +5,10 @@ This project focuses on rendering a block-based world in the browser using WebGL
 
 ---
 
+# Live demo: <a href="https://rohit-nehate.github.io/threejs-minecraft/"> CLICK HERE </a>
+
+---
+
 ## 🚀 Features
 
 - 3D voxel (cube-based) world

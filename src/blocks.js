@@ -134,7 +134,7 @@ export const blocks = {
     material: new THREE.MeshLambertMaterial({ map: textures.sand }),
   },
   cloud: {
-    id: 9,
+    id: 10,
     name: "cloud",
     material: new THREE.MeshLambertMaterial({  transparent: true }),
   },
