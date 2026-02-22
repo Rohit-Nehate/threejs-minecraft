@@ -46,11 +46,13 @@ const scene = new THREE.Scene();
 
 // creating camera
 
+
+
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
 );
-camera.position.set(-32, 100, -10);
+camera.position.set(16, 60, 16);
 camera.layers.enable(1);
 
 //create renderer
@@ -73,6 +75,8 @@ world.generateWorld();
 scene.add(world);
 const player = new Player(scene);
 const physics = new Physics(scene);
+
+
 
 //modelloader
 
@@ -153,7 +157,7 @@ const animate = () => {
 
   //updates
 
-  physics.update(dt, world, player); // simulating physics
+physics.update(dt, world, player); // simulating physics
 
   world.update(player); //calling the world update function
 

@@ -37,7 +37,7 @@ export const createGUI = (world, player, physics, scene) => {
   terrainFolder.add(world.params, "seed", 0, 10000, 1).name("Seed");
   terrainFolder.add(world.params.terrain, "scale", 10, 100).name("Chunk Scale");
   terrainFolder
-    .add(world.params.terrain, "magnitude", 0, 1, 0.1)
+    .add(world.params.terrain, "magnitude", 0, 20, 1)
     .name("Chunk Magnitude");
   terrainFolder.add(world.params.terrain, "offset", 0, 1).name("Chunk Offset");
   terrainFolder.add(world, "renderDistance", 0, 5, 1).name("render Distance");

@@ -15,6 +15,8 @@ export class Player {
 
   inventory = {};
 
+  orbitCamera = false;
+
   cameraHelper = new THREE.CameraHelper(this.camera);
   activeBlockId = 1; //block id player can place
 
@@ -70,6 +72,9 @@ export class Player {
     );
     scene.add(this.selectionHighlight);
 
+    this.control.addEventListener("lock", this.onCameraLock.bind(this));
+    this.control.addEventListener("unlock", this.onCameraUnlock.bind(this));
+
     const edges = new THREE.EdgesGeometry(geometry);
     const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
 
@@ -77,9 +82,24 @@ export class Player {
     this.selectionHighlight.add(outline);
   }
 
+  onCameraLock() {
+    document.querySelector(".startGame").style.display = "none";
+    document.querySelector("#toolbar-container").style.display = "flex";
+    this.velocity.set(0, 0, 0);
+  }
+
+  onCameraUnlock() {
+    if (!this.orbitCamera) {
+      document.querySelector(".startGame").style.display = "flex";
+      document.querySelector("#toolbar-container").style.display = "none";
+    }
+  }
+
   update(world) {
     this.updateRaycaster(world);
     this.tool.update();
+
+   
   }
 
   updateRaycaster(world) {
@@ -136,6 +156,7 @@ export class Player {
 
   onKeyDown(event) {
     if (!this.control.isLocked) {
+      this.orbitCamera = false;
       this.control.lock();
     }
     this.speedMultiplyer = 1;
@@ -175,7 +196,11 @@ export class Player {
       case "KeyR":
         this.camera.position.set(this.position.x, 64, this.position.z);
         this.speedMultiplyer = 0;
-
+        break;
+      case "KeyO":
+        this.orbitCamera = true;
+        
+        this.control.unlock();
         break;
       case "ShiftLeft":
         this.speedMultiplyer = 1.5;
@@ -189,26 +214,26 @@ export class Player {
   }
 
   canPlaceBlockAt(pos) {
-  const playerPos = this.position;
+    const playerPos = this.position;
 
-  const playerMinY = playerPos.y - this.height;
-  const playerMaxY = playerPos.y;
+    const playerMinY = playerPos.y - this.height;
+    const playerMaxY = playerPos.y;
 
-  const blockMinX = pos.x - 0.5;
-  const blockMaxX = pos.x + 0.5;
-  const blockMinY = pos.y - 0.5;
-  const blockMaxY = pos.y + 0.5;
-  const blockMinZ = pos.z - 0.5;
-  const blockMaxZ = pos.z + 0.5;
+    const blockMinX = pos.x - 0.5;
+    const blockMaxX = pos.x + 0.5;
+    const blockMinY = pos.y - 0.5;
+    const blockMaxY = pos.y + 0.5;
+    const blockMinZ = pos.z - 0.5;
+    const blockMaxZ = pos.z + 0.5;
 
-  const dx = Math.max(blockMinX - playerPos.x, 0, playerPos.x - blockMaxX);
-  const dz = Math.max(blockMinZ - playerPos.z, 0, playerPos.z - blockMaxZ);
+    const dx = Math.max(blockMinX - playerPos.x, 0, playerPos.x - blockMaxX);
+    const dz = Math.max(blockMinZ - playerPos.z, 0, playerPos.z - blockMaxZ);
 
-  const horizontalOverlap = dx * dx + dz * dz < this.radius * this.radius;
-  const verticalOverlap = blockMaxY > playerMinY && blockMinY < playerMaxY;
+    const horizontalOverlap = dx * dx + dz * dz < this.radius * this.radius;
+    const verticalOverlap = blockMaxY > playerMinY && blockMinY < playerMaxY;
 
-  return !(horizontalOverlap && verticalOverlap);
-}
+    return !(horizontalOverlap && verticalOverlap);
+  }
 
   /** @param {onKeyUP} event */
 
