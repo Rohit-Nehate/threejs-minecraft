@@ -146,3 +146,4 @@ export const blocks = {
 
 export const resources = [blocks.stone, blocks.coalOre, blocks.ironOre];
 
+
