@@ -38,7 +38,7 @@ font-family: Minecraftia;
   bottom: 8px;
   width: 100%;
 
-  display: flex;
+  display: none;
   justify-content: center;
 }
 

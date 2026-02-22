@@ -89,10 +89,15 @@ export class Player {
   }
 
   onCameraUnlock() {
+
+    document.querySelector("#toolbar-container").style.display = "none";
+    
     if (!this.orbitCamera) {
       document.querySelector(".startGame").style.display = "flex";
-      document.querySelector("#toolbar-container").style.display = "none";
+     
     }
+
+     
   }
 
   update(world) {
