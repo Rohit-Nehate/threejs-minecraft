@@ -40,6 +40,7 @@ font-family: Minecraftia;
 
   display: none;
   justify-content: center;
+  pointer-events: none;
 }
 
 #toolbar {
@@ -49,6 +50,7 @@ font-family: Minecraftia;
   display: flex;
   justify-content: space-between;
   column-gap: 12px;
+  pointer-events: auto;
 }
 
 .toolbar-icon {

@@ -22,7 +22,6 @@ export class MobileControls {
   lookTouchStartX = 0;
   lookTouchStartY = 0;
   lookSensitivity = 0.004;
-  cameraPitch = 0; // accumulated pitch (clamped)
 
   // Joystick state
   joystickTouchId = null;
@@ -78,11 +77,17 @@ export class MobileControls {
    * to rotate the camera. We track touch by ID so joystick and look don't conflict.
    */
   setupTouchLook() {
-    const canvas = document.querySelector("canvas");
-    if (!canvas) return;
+    document.addEventListener("touchstart", (e) => {
+      // Ignore touches on UI elements
+      if (
+        e.target.closest("#joystick-area") ||
+        e.target.closest("#mobile-buttons") ||
+        e.target.closest("#toolbar-container") ||
+        e.target.closest(".startGame")
+      ) {
+        return;
+      }
 
-    canvas.addEventListener("touchstart", (e) => {
-      e.preventDefault();
       for (const touch of e.changedTouches) {
         // If touch is on the right half (or no joystick active on left), use for look
         if (this.lookTouchId === null && touch.clientX > window.innerWidth * 0.35) {
@@ -93,20 +98,31 @@ export class MobileControls {
       }
     }, { passive: false });
 
-    canvas.addEventListener("touchmove", (e) => {
-      e.preventDefault();
+    document.addEventListener("touchmove", (e) => {
       for (const touch of e.changedTouches) {
         if (touch.identifier === this.lookTouchId) {
+          e.preventDefault(); // Prevent default scroll or bounce
+
           const deltaX = touch.clientX - this.lookTouchStartX;
           const deltaY = touch.clientY - this.lookTouchStartY;
 
-          // Apply yaw (left-right)
-          this.player.camera.rotation.y -= deltaX * this.lookSensitivity;
+          // Read current camera rotation in YXZ order (standard for FPS camera look)
+          const euler = new THREE.Euler(0, 0, 0, "YXZ");
+          euler.setFromQuaternion(this.player.camera.quaternion);
 
-          // Apply pitch (up-down) with clamping
-          this.cameraPitch -= deltaY * this.lookSensitivity;
-          this.cameraPitch = Math.max(-Math.PI / 2 * 0.94, Math.min(Math.PI / 2 * 0.94, this.cameraPitch));
-          this.player.camera.rotation.x = this.cameraPitch;
+          // Apply changes
+          euler.y -= deltaX * this.lookSensitivity;
+          euler.x -= deltaY * this.lookSensitivity;
+
+          // Clamp vertical pitch to prevent flipping upside down
+          const limit = Math.PI / 2 * 0.94;
+          euler.x = Math.max(-limit, Math.min(limit, euler.x));
+
+          // Force roll to 0 to prevent any camera tilt/roll
+          euler.z = 0;
+
+          // Apply rotation back to the camera
+          this.player.camera.quaternion.setFromEuler(euler);
 
           this.lookTouchStartX = touch.clientX;
           this.lookTouchStartY = touch.clientY;
@@ -114,7 +130,7 @@ export class MobileControls {
       }
     }, { passive: false });
 
-    canvas.addEventListener("touchend", (e) => {
+    document.addEventListener("touchend", (e) => {
       for (const touch of e.changedTouches) {
         if (touch.identifier === this.lookTouchId) {
           this.lookTouchId = null;
@@ -122,7 +138,7 @@ export class MobileControls {
       }
     });
 
-    canvas.addEventListener("touchcancel", (e) => {
+    document.addEventListener("touchcancel", (e) => {
       for (const touch of e.changedTouches) {
         if (touch.identifier === this.lookTouchId) {
           this.lookTouchId = null;

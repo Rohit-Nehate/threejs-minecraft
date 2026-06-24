@@ -135,6 +135,7 @@ export class Player {
   }
 
   updateRaycaster(world) {
+    this.camera.updateMatrixWorld();
     this.raycaster.setFromCamera(crosshair, this.camera);
     const intersections = this.raycaster.intersectObject(world, true);
 
