@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image" href="/minecraft.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>threejs-minecraft</title>
     <link rel="stylesheet" href="/src/style.css">
   </head>
@@ -14,19 +14,24 @@
 
       <div class="startGame"> <div>
              <h1>MINECRAFT THREE JS</h1>
-             <p>
-              WASD - Move <br>
-SHIFT - Sprint <br>
-SPACE - Jump <br>
-R - Reset Camera <br>
-1-9 - Select Block <br>
-P - Save Game <br>
-L - Load Game <br>
-O - Orbit Camera <br>
+             <p class="desktop-instructions">
+                WASD - Move <br>
+                SHIFT - Sprint <br>
+                SPACE - Jump <br>
+                R - Reset Camera <br>
+                1-9 - Select Block <br>
+                P - Save Game <br>
+                L - Load Game <br>
+                O - Orbit Camera <br>
+            </p>
+             <p class="mobile-instructions">
+                Use joystick to move<br>
+                Drag screen to look<br>
+                Tap toolbar to select blocks<br>
+            </p>
 
-             </p>
-
-             <h1>PRESS ANY KEY TO START</h1>
+             <h1 class="desktop-start-text">PRESS ANY KEY TO START</h1>
+             <h1 class="mobile-start-text">TAP TO START</h1>
       </div>
    
       </div>
@@ -58,6 +63,31 @@ O - Orbit Camera <br>
       <img class="toolbar-icon" id="toolbar-7" src="inventory-icons/oak_leaves.png"></img>
       <img class="toolbar-icon" id="toolbar-8" src="inventory-icons/sand.png"></img>
       <img class="toolbar-icon" id="toolbar-9" src="inventory-icons/oak_planks.png"></img>
+    </div>
+  </div>
+
+  <!-- Mobile Controls -->
+  <div id="mobile-controls">
+    <!-- Virtual Joystick -->
+    <div id="joystick-area">
+      <div id="joystick-base">
+        <div id="joystick-thumb"></div>
+      </div>
+    </div>
+    <!-- Action Buttons -->
+    <div id="mobile-buttons">
+      <button id="btn-jump" title="Jump">⬆</button>
+      <button id="btn-sprint" title="Sprint">🏃</button>
+      <button id="btn-break" title="Break">⛏</button>
+      <button id="btn-place" title="Place">🧱</button>
+    </div>
+  </div>
+
+  <!-- Orientation Warning Overlay for Mobile -->
+  <div id="orientation-warning">
+    <div class="warning-content">
+      <div class="phone-icon"></div>
+      <p>Please rotate your device to landscape mode to play!</p>
     </div>
   </div>
 

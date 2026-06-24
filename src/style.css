@@ -90,3 +90,274 @@ font-family: Minecraftia;
   border: 2px solid black;
   border-radius: 50px;
 }
+
+/* ============================================
+   MOBILE CONTROLS
+   ============================================ */
+
+/* By default, show desktop text, hide mobile text */
+.mobile-start-text {
+  display: none;
+}
+.mobile-instructions {
+  display: none;
+}
+.desktop-start-text {
+  display: block;
+}
+.desktop-instructions {
+  display: block;
+}
+
+/* Mobile controls container — hidden by default */
+#mobile-controls {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 100;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Virtual Joystick Area */
+#joystick-area {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 140px;
+  height: 140px;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+#joystick-base {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(2px);
+}
+
+#joystick-thumb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  transition: background 0.1s;
+}
+
+#joystick-thumb:active {
+  background: rgba(255, 255, 255, 0.65);
+}
+
+/* Action Buttons */
+#mobile-buttons {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: grid;
+  grid-template-columns: 60px 60px;
+  grid-template-rows: 60px 60px;
+  gap: 10px;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+#mobile-buttons button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+  backdrop-filter: blur(2px);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+#mobile-buttons button:active {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+#mobile-buttons button.active {
+  background: rgba(100, 200, 100, 0.4);
+  border-color: rgba(100, 255, 100, 0.7);
+}
+
+/* ============================================
+   MOBILE MEDIA QUERY
+   ============================================ */
+@media (max-width: 1024px), (pointer: coarse) {
+  /* Show mobile text, hide desktop text */
+  .mobile-start-text {
+    display: block;
+  }
+  .mobile-instructions {
+    display: block;
+  }
+  .desktop-start-text {
+    display: none;
+  }
+  .desktop-instructions {
+    display: none;
+  }
+
+  /* Smaller toolbar for mobile */
+  #toolbar {
+    padding: 4px;
+    column-gap: 4px;
+    border-width: 2px;
+  }
+
+  .toolbar-icon {
+    width: 36px;
+    height: 36px;
+    outline-width: 2px;
+  }
+
+  #toolbar-container {
+    bottom: 15px;
+    z-index: 110;
+  }
+
+  /* Move notification to the top center */
+  .notification {
+    bottom: auto;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.2rem;
+    text-align: center;
+    width: auto;
+  }
+
+  /* Move coords display to the top right */
+  .info {
+    position: fixed;
+    font-size: 10px;
+    bottom: auto;
+    top: 15px;
+    right: 15px;
+  }
+
+  /* Hide lil-gui on mobile */
+  .lil-gui {
+    display: none !important;
+  }
+
+  /* Hide stats on mobile */
+  #stats {
+    display: none !important;
+  }
+
+  /* Smaller start screen text */
+  .startGame h1 {
+    font-size: 1.2rem;
+  }
+
+  .startGame p {
+    font-size: 0.7rem;
+  }
+
+  .startGame div {
+    padding: 20px 24px;
+    border-radius: 30px;
+  }
+}
+
+/* Orientation warning styles */
+#orientation-warning {
+  display: none;
+}
+
+@media (max-width: 1024px) and (orientation: portrait) {
+  #orientation-warning {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #111111;
+    color: white;
+    z-index: 99999;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+    font-family: Minecraftia, sans-serif;
+  }
+
+  .warning-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .warning-content p {
+    font-size: 1rem;
+    margin-top: 20px;
+    line-height: 1.5;
+  }
+
+  .phone-icon {
+    width: 40px;
+    height: 70px;
+    border: 3px solid white;
+    border-radius: 6px;
+    position: relative;
+    animation: rotatePhone 2s ease-in-out infinite;
+  }
+
+  .phone-icon::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    border: 2px solid white;
+    border-radius: 50%;
+  }
+}
+
+@keyframes rotatePhone {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-90deg);
+  }
+  100% {
+    transform: rotate(-90deg);
+  }
+}

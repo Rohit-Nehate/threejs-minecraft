@@ -6,47 +6,24 @@ import { createGUI } from "./gui";
 import { Player } from "./player";
 import { Physics } from "./physics";
 import { ModelLoader } from "./modelLoader";
+import { isMobile, MobileControls } from "./mobileControls";
 
 const stats = new Stats();
 document.body.append(stats.dom);
 
+// Detect mobile
+const mobile = isMobile();
+if (mobile) {
+  stats.dom.style.display = "none";
+}
+
 //event listener
 document.addEventListener("contextmenu", (e) => e.preventDefault());
 
-document.addEventListener("mousedown", (e) => {
-  if (!player.control.isLocked) return;
-  if (!player.selectedCoords) return;
-  player.tool.startAnimation();
-  const { x, y, z } = player.selectedCoords;
-
-  if (e.button === 0) {
-    world.handleRemoveBlock(x, y, z);
-  }
-
-  //  RIGHT CLICK TO PLACE
-  if (e.button === 2) {
-    const n = player.selectedNormal;
-
-    const placePos = new THREE.Vector3(x + n.x, y + n.y, z + n.z);
-
-    if (player.canPlaceBlockAt(placePos)) {
-      world.handleAddBlock(
-        placePos.x,
-        placePos.y,
-        placePos.z,
-        player.activeBlockId,
-      );
-    }
-  }
-});
-
-// document.addEventListener("mousedown", onMouseDown);
 // create scene
 const scene = new THREE.Scene();
 
 // creating camera
-
-
 
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -76,7 +53,116 @@ scene.add(world);
 const player = new Player(scene);
 const physics = new Physics(scene);
 
+// Block interaction helper (shared between mouse and touch)
+function handleBlockBreak() {
+  if (!player.selectedCoords) return;
+  player.tool.startAnimation();
+  const { x, y, z } = player.selectedCoords;
+  world.handleRemoveBlock(x, y, z);
+}
 
+function handleBlockPlace() {
+  if (!player.selectedCoords) return;
+  player.tool.startAnimation();
+  const { x, y, z } = player.selectedCoords;
+  const n = player.selectedNormal;
+  if (!n) return;
+  const placePos = new THREE.Vector3(x + n.x, y + n.y, z + n.z);
+  if (player.canPlaceBlockAt(placePos)) {
+    world.handleAddBlock(
+      placePos.x,
+      placePos.y,
+      placePos.z,
+      player.activeBlockId,
+    );
+  }
+}
+
+// Desktop mouse events
+document.addEventListener("mousedown", (e) => {
+  if (!player.control.isLocked) return;
+  if (!player.selectedCoords) return;
+  player.tool.startAnimation();
+  const { x, y, z } = player.selectedCoords;
+
+  if (e.button === 0) {
+    world.handleRemoveBlock(x, y, z);
+  }
+
+  //  RIGHT CLICK TO PLACE
+  if (e.button === 2) {
+    const n = player.selectedNormal;
+
+    const placePos = new THREE.Vector3(x + n.x, y + n.y, z + n.z);
+
+    if (player.canPlaceBlockAt(placePos)) {
+      world.handleAddBlock(
+        placePos.x,
+        placePos.y,
+        placePos.z,
+        player.activeBlockId,
+      );
+    }
+  }
+});
+
+// Mobile controls setup
+let mobileControls = null;
+
+if (mobile) {
+  // Mobile: tap start screen to begin
+  const startScreen = document.querySelector(".startGame");
+  startScreen.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    player.startMobile();
+    
+    // Attempt fullscreen and lock orientation to landscape
+    const docEl = document.documentElement;
+    const requestFS = docEl.requestFullscreen || 
+                      docEl.mozRequestFullScreen || 
+                      docEl.webkitRequestFullscreen || 
+                      docEl.msRequestFullscreen;
+    
+    if (requestFS) {
+      requestFS.call(docEl).then(() => {
+        // Fullscreen entered, lock orientation if supported
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock("landscape").catch((err) => {
+            console.log("Orientation lock failed/not supported:", err);
+          });
+        }
+        // Force resize update
+        setTimeout(() => {
+          window.dispatchEvent(new Event("resize"));
+        }, 150);
+      }).catch((err) => {
+        console.log("Fullscreen request failed:", err);
+      });
+    } else {
+      // Fallback if Fullscreen API is not supported (e.g. iOS Safari)
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock("landscape").catch((err) => {
+          console.log("Orientation lock failed:", err);
+        });
+      }
+      setTimeout(() => {
+        window.dispatchEvent(new Event("resize"));
+      }, 150);
+    }
+    
+    // Initialize mobile controls after start
+    if (!mobileControls) {
+      mobileControls = new MobileControls(player, world, (action) => {
+        if (action === "break") {
+          handleBlockBreak();
+        } else if (action === "place") {
+          handleBlockPlace();
+        }
+      });
+    }
+    mobileControls.show();
+  }, { passive: false });
+}
 
 //modelloader
 
@@ -147,7 +233,9 @@ const animate = () => {
   let currentTime = performance.now();
   const dt = Math.floor(currentTime - prevTime) / 1000;
 
-  renderer.render(scene, player.control.isLocked ? player.camera : camera);
+  // Use player camera when in game (locked or mobile active)
+  const activeCamera = (player.control.isLocked || player.isMobileActive) ? player.camera : camera;
+  renderer.render(scene, activeCamera);
 
   //shadow updation
 
@@ -166,6 +254,11 @@ physics.update(dt, world, player); // simulating physics
   controls.update(); // updating controls on each render
 
   player.update(world); // update the player related operations
+
+  // Update mobile controls
+  if (mobileControls) {
+    mobileControls.update();
+  }
 
   prevTime = currentTime;
 };

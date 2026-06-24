@@ -16,6 +16,7 @@ export class Player {
   inventory = {};
 
   orbitCamera = false;
+  isMobileActive = false;
 
   cameraHelper = new THREE.CameraHelper(this.camera);
   activeBlockId = 1; //block id player can place
@@ -92,12 +93,38 @@ export class Player {
 
     document.querySelector("#toolbar-container").style.display = "none";
     
-    if (!this.orbitCamera) {
+    if (!this.orbitCamera && !this.isMobileActive) {
       document.querySelector(".startGame").style.display = "flex";
      
     }
 
      
+  }
+
+  /**
+   * Start the game in mobile mode (no pointer lock)
+   */
+  startMobile() {
+    this.isMobileActive = true;
+    document.querySelector(".startGame").style.display = "none";
+    document.querySelector("#toolbar-container").style.display = "flex";
+    this.velocity.set(0, 0, 0);
+  }
+
+  /**
+   * Select a block by ID — used by both keyboard and mobile toolbar
+   */
+  selectBlock(blockId) {
+    document
+      .getElementById(`toolbar-${this.activeBlockId}`)
+      .classList.remove("selected");
+    this.activeBlockId = blockId;
+    document
+      .getElementById(`toolbar-${this.activeBlockId}`)
+      .classList.add("selected");
+    if (this.inventory[this.activeBlockId]) {
+      this.tool.setMesh(this.inventory[this.activeBlockId]);
+    }
   }
 
   update(world) {
@@ -160,7 +187,7 @@ export class Player {
   /** @param {onKeyDown} event */
 
   onKeyDown(event) {
-    if (!this.control.isLocked) {
+    if (!this.control.isLocked && !this.isMobileActive) {
       this.orbitCamera = false;
       this.control.lock();
     }
@@ -175,16 +202,7 @@ export class Player {
       case "Digit7":
       case "Digit8":
       case "Digit9":
-        document
-          .getElementById(`toolbar-${this.activeBlockId}`)
-          .classList.remove("selected");
-        this.activeBlockId = Number(event.key);
-        document
-          .getElementById(`toolbar-${this.activeBlockId}`)
-          .classList.add("selected");
-        // console.log(this.inventory)
-        this.tool.setMesh(this.inventory[this.activeBlockId]);
-
+        this.selectBlock(Number(event.key));
         break;
       case "KeyW":
         this.input.z = this.maxSpeed;
@@ -259,12 +277,31 @@ export class Player {
   }
 
   movePlayer(dt) {
-    if (this.control.isLocked) {
+    if (this.control.isLocked || this.isMobileActive) {
       this.velocity.x = this.input.x;
       this.velocity.z = this.input.z;
 
-      this.control.moveRight(this.velocity.x * dt * this.speedMultiplyer);
-      this.control.moveForward(this.velocity.z * dt * this.speedMultiplyer);
+      if (this.isMobileActive) {
+        // On mobile, move using camera direction directly (no pointer lock)
+        const forward = new THREE.Vector3(0, 0, -1);
+        forward.applyQuaternion(this.camera.quaternion);
+        forward.y = 0;
+        forward.normalize();
+
+        const right = new THREE.Vector3(1, 0, 0);
+        right.applyQuaternion(this.camera.quaternion);
+        right.y = 0;
+        right.normalize();
+
+        const moveX = this.velocity.x * dt * this.speedMultiplyer;
+        const moveZ = this.velocity.z * dt * this.speedMultiplyer;
+
+        this.position.x += right.x * moveX + forward.x * moveZ;
+        this.position.z += right.z * moveX + forward.z * moveZ;
+      } else {
+        this.control.moveRight(this.velocity.x * dt * this.speedMultiplyer);
+        this.control.moveForward(this.velocity.z * dt * this.speedMultiplyer);
+      }
       this.position.y += this.velocity.y * dt;
       this.setCords();
     }
@@ -276,7 +313,7 @@ export class Player {
   }
 
   setCords() {
-    if (this.control.isLocked) {
+    if (this.control.isLocked || this.isMobileActive) {
       this.cordsparagraph.innerHTML = this.getCords();
     }
   }
